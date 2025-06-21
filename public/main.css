@@ -1,1 +1,20 @@
 /* Define styles */
+body {
+    background-color: #101827;
+    color: white;
+}
+
+.custom-card {
+    background-color: #1F2937;
+    color: white;
+}
+
+.custom-btn{
+    background-color: #F97316;
+    color: white;
+}
+
+.custom-btn:hover {
+    background-color: #fb923c;
+    color: white;
+}

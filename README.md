@@ -9,6 +9,9 @@
 * Sqlite3 
     - follow the instructions at https://www.tutorialspoint.com/sqlite/sqlite_installation.htm 
     - Note that the latest versions of the Mac OS and Linux come with SQLite pre-installed
+    
+ ## Additional Packages
+- bcrypt: Used to securely hash and compare organiser passwords.
 
 #### Using this template ####
 
