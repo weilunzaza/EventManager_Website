@@ -8,6 +8,8 @@ var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs'); // set the app to use ejs for rendering
 app.set('views', path.join(__dirname, 'views'));
+//app.use(express.static(path.join(__dirname, 'public')));
+
 
 
 // Set up SQLite

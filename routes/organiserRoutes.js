@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const db = require('../database');
+// const db = require('../database');
+const db = global.db;
 const router = express.Router();
 
 //Middleware to check if the user is logged in
@@ -36,3 +37,5 @@ router.post('/login', (req, res) => {
         });
     });
 });
+
+module.exports = router;
