@@ -7,8 +7,8 @@ const path = require('path')
 var bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs'); // set the app to use ejs for rendering
-app.set('views', path.join(__dirname, 'views'));
-//app.use(express.static(path.join(__dirname, 'public')));
+//app.set('views', path.join(__dirname, 'views')); //for some reason if i use this i will not have the correct style
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 
