@@ -5,7 +5,7 @@ PRAGMA foreign_keys=ON;
 BEGIN TRANSACTION;
 
 -- Create your tables with SQL commands here (watch out for slight syntactical differences with SQLite vs MySQL)
-CREATE TABLE organisers (
+CREATE TABLE IF NOT EXISTS organisers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
