@@ -5,6 +5,13 @@ const app = express();
 const port = 3000;
 const path = require('path')
 var bodyParser = require("body-parser");
+const session = require('express-session');
+app.use(session({
+    secret: 'your-secret-key', //use an environment variable in production
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } //secure should be true only with HTTPS
+  }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs'); // set the app to use ejs for rendering
 //app.set('views', path.join(__dirname, 'views')); //for some reason if i use this i will not have the correct style

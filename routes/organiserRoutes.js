@@ -95,5 +95,16 @@ router.post('/register', (req, res) => {
     // });
 });
 
+// Temporary organiser dashboard route
+router.get('/home', (req, res) => {
+res.render('organiserHomepage', {
+    organiserName: 'Weilun',
+    siteName: 'EventManager 3000',
+    siteDescription: 'Your go-to portal for awesome events!',
+    publishedEvents: [], // sample data for now
+    draftEvents: []      // sample data for now
+});
+});
+
 
 module.exports = router;

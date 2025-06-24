@@ -1,0 +1,80 @@
+<!-- This will be organiser home page when they log in -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Organiser Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style1.css">
+</head>
+<body class="bg-light">
+
+  <div class="container my-5">
+    <div class="card shadow p-4">
+      <h1 class="text-center mb-4">🎟️ Welcome to <%= siteName %>!</h1>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <strong>Author:</strong> <%= organiserName %> <br>
+          <span class="text-muted"><%= siteDescription %></span>
+        </div>
+        <div>
+          <a href="/organiser/settings" class="btn btn-outline-primary me-2">Settings</a>
+          <a href="/organiser/create" class="btn btn-success">Create New Event</a>
+          <a href="/organiser/logout" class="btn btn-dark ms-2">Logout</a>
+        </div>
+      </div>
+
+      <hr>
+
+      <h3 class="text-success">Published Events</h3>
+      <% if (publishedEvents.length === 0) { %>
+        <p class="text-muted">No published events yet. Get started!</p>
+      <% } else { %>
+        <ul class="list-group mb-4">
+          <% publishedEvents.forEach(event => { %>
+            <li class="list-group-item d-flex justify-content-between">
+              <div>
+                <strong><%= event.title %></strong> on <%= event.date %>
+              </div>
+              <div>
+                <a href="/event/<%= event.id %>" class="btn btn-sm btn-outline-secondary">Share</a>
+                <form method="POST" action="/organiser/delete/<%= event.id %>" class="d-inline">
+                  <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+
+      <h3 class="text-warning">Draft Events</h3>
+      <% if (draftEvents.length === 0) { %>
+        <p class="text-muted">No drafts. Start something new!</p>
+      <% } else { %>
+        <ul class="list-group">
+          <% draftEvents.forEach(event => { %>
+            <li class="list-group-item d-flex justify-content-between">
+              <div>
+                <strong><%= event.title %></strong> (created: <%= event.created_at %>)
+              </div>
+              <div>
+                <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-primary">Edit</a>
+                <form method="POST" action="/organiser/publish/<%= event.id %>" class="d-inline">
+                  <button class="btn btn-sm btn-success">Publish</button>
+                </form>
+                <form method="POST" action="/organiser/delete/<%= event.id %>" class="d-inline">
+                  <button class="btn btn-sm btn-danger">Delete</button>
+                </form>
+              </div>
+            </li>
+          <% }); %>
+        </ul>
+      <% } %>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
