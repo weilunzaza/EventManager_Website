@@ -11,11 +11,13 @@ CREATE TABLE IF NOT EXISTS organisers (
     password TEXT NOT NULL
 );
 
+-- Users Table
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_name TEXT NOT NULL
 );
 
+-- Email Accounts
 CREATE TABLE IF NOT EXISTS email_accounts (
     email_account_id INTEGER PRIMARY KEY AUTOINCREMENT,
     email_address TEXT NOT NULL,
@@ -23,7 +25,19 @@ CREATE TABLE IF NOT EXISTS email_accounts (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
--- Insert default data (if necessary here)
+-- Events table
+CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    organiser_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    date TEXT NOT NULL,
+    status TEXT DEFAULT 'draft',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    published_at TEXT,
+    FOREIGN KEY (organiser_id) REFERENCES organisers(id)
+);
+
 
 -- Set up three users
 INSERT INTO users ('user_name') VALUES ('Simon Star');

@@ -118,5 +118,30 @@ router.get('/home', (req, res) => {
     });
 });
 
+//GET create event page
+router.get('/create', (req, res) => {
+    if (!req.session.organiserID) return res.redirect('/organiser/login');
+    res.render('createEvent');
+  });
+
+  //POST create Event page
+  router.post('/create', (req, res) => {
+    const { title, description, date } = req.body;
+    const organiserID = req.session.organiserID;
+  
+    db.run(`INSERT INTO events (organiser_id, title, description, date, status, created_at)
+            VALUES (?, ?, ?, ?, 'draft', datetime('now'))`,
+      [organiserID, title, description, date],
+      function(err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).render('errorPage', { message: 'Error saving event' });
+        }
+        res.redirect('/organiser/home');
+      }
+    );
+  });
+  
+
 
 module.exports = router;
