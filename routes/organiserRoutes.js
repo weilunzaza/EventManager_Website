@@ -29,7 +29,7 @@ router.post('/login', (req, res) => {
         bcrypt.compare(password, organiser.password, (err, result) => {
             if (result) {
                 req.session.isLoggedIn = true;
-                req.session.organiserId = organiser.id;
+                req.session.organiserID = organiser.id;
                 res.redirect('/organiser/home');
             } else {
                 return res.status(500).render('errorPage', { message: 'Invalid credentials' });
@@ -97,13 +97,25 @@ router.post('/register', (req, res) => {
 
 // Temporary organiser dashboard route
 router.get('/home', (req, res) => {
-res.render('organiserHomepage', {
-    organiserName: 'Weilun',
-    siteName: 'EventManager 3000',
-    siteDescription: 'Your go-to portal for awesome events!',
-    publishedEvents: [], // sample data for now
-    draftEvents: []      // sample data for now
-});
+    const organiserID = req.session.organiserID;
+
+    if (!organiserID) {
+        return res.redirect('/organiser/login');
+    }
+
+    db.get("SELECT * FROM organisers WHERE id = ?", [organiserID], (err, organiser) => {
+        if (err || !organiser){
+            return res.status(500).render('errorPage', { message: 'Unbale to load organiser info' })
+        }
+ 
+        res.render('organiserHomepage', {
+            organiserName: organiser.username,
+            siteName: 'EventManager 3000',
+            siteDescription: 'Your go-to portal for awesome events!',
+            publishedEvents: [], // sample data for now
+            draftEvents: []      // sample data for now
+        });
+    });
 });
 
 
