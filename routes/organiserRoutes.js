@@ -98,25 +98,39 @@ router.post('/register', (req, res) => {
 // Temporary organiser dashboard route
 router.get('/home', (req, res) => {
     const organiserID = req.session.organiserID;
-
+  
     if (!organiserID) {
-        return res.redirect('/organiser/login');
+      return res.redirect('/organiser/login');
     }
-
+  
     db.get("SELECT * FROM organisers WHERE id = ?", [organiserID], (err, organiser) => {
-        if (err || !organiser){
-            return res.status(500).render('errorPage', { message: 'Unbale to load organiser info' })
+      if (err || !organiser) {
+        return res.status(500).render('errorPage', { message: 'Unable to load organiser info' });
+      }
+  
+      db.all("SELECT * FROM events WHERE organiser_id = ? AND status = 'draft'", [organiserID], (err, draftEvents) => {
+        if (err) {
+          return res.status(500).render('errorPage', { message: 'Unable to fetch draft events' });
         }
- 
-        res.render('organiserHomepage', {
+  
+        // Optional: also load published events if needed
+        db.all("SELECT * FROM events WHERE organiser_id = ? AND status = 'published'", [organiserID], (err, publishedEvents) => {
+          if (err) {
+            return res.status(500).render('errorPage', { message: 'Unable to fetch published events' });
+          }
+  
+          res.render('organiserHomepage', {
             organiserName: organiser.username,
             siteName: 'EventManager 3000',
             siteDescription: 'Your go-to portal for awesome events!',
-            publishedEvents: [], // sample data for now
-            draftEvents: []      // sample data for now
+            draftEvents,
+            publishedEvents
+          });
         });
+      });
     });
-});
+  });
+  
 
 //GET create event page
 router.get('/create', (req, res) => {
