@@ -176,7 +176,7 @@ router.post('/publish/:id', (req, res) => {
     );
   });
 
-  //Deleting events
+//Deleting events
 router.post('/delete/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
@@ -194,6 +194,57 @@ router.post('/delete/:id', (req, res) => {
         res.redirect('/organiser/home');
       }
     );
+  });
+  
+  //Edit Events
+  router.get('/edit/:id', (req, res) => {
+    const organiserID = req.session.organiserID;
+    const eventID = req.params.id;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.get(
+      "SELECT * FROM events WHERE id = ? AND organiser_id = ?",
+      [eventID, organiserID],
+      (err, event) => {
+        if (err || !event) {
+          return res.status(500).render('errorPage', { message: 'Failed to load event for editing' });
+        }
+        res.render('editEvent', { event });
+      }
+    );
+  });
+
+// Handle event edit form submission
+router.post('/edit/:id', (req, res) => {
+    const organiserID = req.session.organiserID;
+    const eventID = req.params.id;
+    const { title, description, date } = req.body;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.run(
+      `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
+      [title, description, date, eventID, organiserID],
+      function (err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).render('errorPage', { message: 'Error updating event' });
+        }
+        res.redirect('/organiser/home');
+      }
+    );
+  });
+  
+  //Logout Button Route
+router.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).render('errorPage', { message: 'Error logging out' });
+      }
+      res.redirect('/');
+    });
   });
   
   
