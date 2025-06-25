@@ -155,6 +155,47 @@ router.get('/create', (req, res) => {
       }
     );
   });
+
+  //Publish Events
+router.post('/publish/:id', (req, res) => {
+    const organiserID = req.session.organiserID;
+    const eventID = req.params.id;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.run(
+      `UPDATE events SET status = 'published', published_at = datetime('now') WHERE id = ? AND organiser_id = ?`,
+      [eventID, organiserID],
+      function (err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).render('errorPage', { message: 'Error publishing event' });
+        }
+        res.redirect('/organiser/home');
+      }
+    );
+  });
+
+  //Deleting events
+router.post('/delete/:id', (req, res) => {
+    const organiserID = req.session.organiserID;
+    const eventID = req.params.id;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.run(
+      "DELETE FROM events WHERE id = ? AND organiser_id = ?",
+      [eventID, organiserID],
+      function (err) {
+        if (err) {
+          console.error("Delete error:", err);
+          return res.status(500).render('errorPage', { message: 'Failed to delete event' });
+        }
+        res.redirect('/organiser/home');
+      }
+    );
+  });
+  
   
 
 

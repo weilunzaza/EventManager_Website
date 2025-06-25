@@ -38,7 +38,7 @@
                 <strong><%= event.title %></strong> on <%= event.date %>
               </div>
               <div>
-                <a href="/event/<%= event.id %>" class="btn btn-sm btn-outline-secondary">Share</a>
+                <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
                 <form method="POST" action="/organiser/delete/<%= event.id %>" class="d-inline">
                   <button class="btn btn-sm btn-outline-danger">Delete</button>
                 </form>
