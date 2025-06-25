@@ -243,6 +243,7 @@ router.get('/logout', (req, res) => {
         console.error('Logout error:', err);
         return res.status(500).render('errorPage', { message: 'Error logging out' });
       }
+      //main code which redirect to '/' which is firstPage.ejs
       res.redirect('/');
     });
   });
