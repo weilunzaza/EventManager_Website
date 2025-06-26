@@ -38,6 +38,14 @@ CREATE TABLE IF NOT EXISTS events (
     FOREIGN KEY (organiser_id) REFERENCES organisers(id)
 );
 
+-- Tickets table
+CREATE TABLE IF NOT EXISTS tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
+
 
 -- Set up three users
 INSERT INTO users ('user_name') VALUES ('Simon Star');

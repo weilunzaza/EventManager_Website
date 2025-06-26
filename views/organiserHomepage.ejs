@@ -39,6 +39,9 @@
                   <strong><%= event.title %></strong><br>
                   <small><%= event.date %></small><br>
                   <p class="mb-1"><%= event.description %></p>
+                  <p class="mb-0">
+                    <strong>Tickets available:</strong> <%= event.ticketCount %>
+                  </p>
                 </div>
                 <div class="text-end">
                   <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
@@ -65,6 +68,9 @@
                   <strong><%= event.title %></strong><br>
                   <small>Created: <%= event.created_at %></small><br>
                   <p class="mb-1"><%= event.description %></p>
+                  <p class="mb-0">
+                    <strong>Tickets available:</strong> <%= event.ticketCount %>
+                  </p>
                 </div>
                 <div class="text-end">
                   <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-primary">Edit</a>

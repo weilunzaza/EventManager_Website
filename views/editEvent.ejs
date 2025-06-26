@@ -24,8 +24,14 @@
         <label class="form-label">Date</label>
         <input type="date" name="date" class="form-control" value="<%= event.date %>" required>
       </div>
+      <div class="mb-3">
+        <label for="quantity" class="form-label">Tickets Available</label>
+        <input type="number" class="form-control" name="quantity" id="quantity" min="1" required value="<%= event.ticketCount %>">
+      </div>
       <button type="submit" class="btn btn-primary w-100">Save Changes</button>
     </form>
+
+    
 
     <div class="text-center mt-3">
       <a href="/organiser/home" class="text-decoration-none">← Back to Dashboard</a>

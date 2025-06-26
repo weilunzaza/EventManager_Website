@@ -95,7 +95,7 @@ router.post('/register', (req, res) => {
     // });
 });
 
-// Temporary organiser dashboard route
+//Organiser dashboard route
 router.get('/home', (req, res) => {
     const organiserID = req.session.organiserID;
   
@@ -108,24 +108,39 @@ router.get('/home', (req, res) => {
         return res.status(500).render('errorPage', { message: 'Unable to load organiser info' });
       }
   
-      db.all("SELECT * FROM events WHERE organiser_id = ? AND status = 'draft'", [organiserID], (err, draftEvents) => {
+      // Fetch all events from this organiser
+      db.all("SELECT * FROM events WHERE organiser_id = ?", [organiserID], async (err, events) => {
         if (err) {
-          return res.status(500).render('errorPage', { message: 'Unable to fetch draft events' });
+          return res.status(500).render('errorPage', { message: 'Unable to fetch events' });
         }
   
-        // Optional: also load published events if needed
-        db.all("SELECT * FROM events WHERE organiser_id = ? AND status = 'published'", [organiserID], (err, publishedEvents) => {
-          if (err) {
-            return res.status(500).render('errorPage', { message: 'Unable to fetch published events' });
-          }
+        const draftEvents = [];
+        const publishedEvents = [];
   
-          res.render('organiserHomepage', {
-            organiserName: organiser.username,
-            siteName: 'EventManager 3000',
-            siteDescription: 'Your go-to portal for awesome events!',
-            draftEvents,
-            publishedEvents
+        for (const event of events) {
+          // Get ticket quantity
+          const ticket = await new Promise((resolve, reject) => {
+            db.get("SELECT quantity FROM tickets WHERE event_id = ?", [event.id], (err, row) => {
+              if (err) return reject(err);
+              resolve(row);
+            });
           });
+  
+          event.ticketCount = ticket ? ticket.quantity : 0;
+  
+          if (event.status === 'published') {
+            publishedEvents.push(event);
+          } else {
+            draftEvents.push(event);
+          }
+        }
+  
+        res.render('organiserHomepage', {
+          organiserName: organiser.username,
+          siteName: 'EventManager 3000',
+          siteDescription: 'Your go-to portal for awesome events!',
+          draftEvents,
+          publishedEvents
         });
       });
     });
@@ -139,24 +154,40 @@ router.get('/create', (req, res) => {
   });
 
   //POST create Event page
-  router.post('/create', (req, res) => {
-    const { title, description, date } = req.body;
+router.post('/create', (req, res) => {
+    const { title, description, date, quantity } = req.body;
     const organiserID = req.session.organiserID;
   
-    db.run(`INSERT INTO events (organiser_id, title, description, date, status, created_at)
-            VALUES (?, ?, ?, ?, 'draft', datetime('now'))`,
+    db.run(
+      `INSERT INTO events (organiser_id, title, description, date, status, created_at)
+       VALUES (?, ?, ?, ?, 'draft', datetime('now'))`,
       [organiserID, title, description, date],
-      function(err) {
+      function (err) {
         if (err) {
           console.error(err);
           return res.status(500).render('errorPage', { message: 'Error saving event' });
         }
-        res.redirect('/organiser/home');
+  
+        const eventID = this.lastID;
+  
+        //Insert ticket quantity
+        db.run(
+          `INSERT INTO tickets (event_id, quantity) VALUES (?, ?)`,
+          [eventID, quantity],
+          function (err) {
+            if (err) {
+              console.error(err);
+              return res.status(500).render('errorPage', { message: 'Error saving ticket info' });
+            }
+  
+            res.redirect('/organiser/home');
+          }
+        );
       }
     );
   });
 
-  //Publish Events
+//Publish Events
 router.post('/publish/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
@@ -196,45 +227,86 @@ router.post('/delete/:id', (req, res) => {
     );
   });
   
-  //Edit Events
-  router.get('/edit/:id', (req, res) => {
+// Edit Events (with ticket quantity included)
+router.get('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
   
     if (!organiserID) return res.redirect('/organiser/login');
   
     db.get(
-      "SELECT * FROM events WHERE id = ? AND organiser_id = ?",
+      `SELECT e.*, t.quantity AS ticketCount
+       FROM events e
+       LEFT JOIN tickets t ON e.id = t.event_id
+       WHERE e.id = ? AND e.organiser_id = ?`,
       [eventID, organiserID],
       (err, event) => {
         if (err || !event) {
           return res.status(500).render('errorPage', { message: 'Failed to load event for editing' });
         }
+        // Default ticketCount to 0 if no ticket record exists
+        event.ticketCount = event.ticketCount || 0;
         res.render('editEvent', { event });
       }
     );
   });
 
 // Handle event edit form submission
+// Handle event edit form submission (including ticket quantity)
 router.post('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
-    const { title, description, date } = req.body;
+    const { title, description, date, quantity } = req.body;
   
     if (!organiserID) return res.redirect('/organiser/login');
   
-    db.run(
-      `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
-      [title, description, date, eventID, organiserID],
-      function (err) {
+    if (!quantity || isNaN(quantity) || quantity < 1) {
+      return res.status(400).render('errorPage', { message: 'Invalid ticket quantity' });
+    }
+  
+    db.serialize(() => {
+      // Update the event info
+      db.run(
+        `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
+        [title, description, date, eventID, organiserID],
+        function (err) {
+          if (err) {
+            console.error(err);
+            return res.status(500).render('errorPage', { message: 'Error updating event' });
+          }
+        }
+      );
+  
+      // Update ticket quantity (insert if not exist)
+      db.get(`SELECT * FROM tickets WHERE event_id = ?`, [eventID], (err, row) => {
         if (err) {
           console.error(err);
-          return res.status(500).render('errorPage', { message: 'Error updating event' });
+          return res.status(500).render('errorPage', { message: 'Error checking ticket record' });
         }
-        res.redirect('/organiser/home');
-      }
-    );
+  
+        if (row) {
+          // Update existing ticket
+          db.run(`UPDATE tickets SET quantity = ? WHERE event_id = ?`, [quantity, eventID], function (err) {
+            if (err) {
+              console.error(err);
+              return res.status(500).render('errorPage', { message: 'Error updating tickets' });
+            }
+            res.redirect('/organiser/home');
+          });
+        } else {
+          // Insert new ticket if not exists
+          db.run(`INSERT INTO tickets (event_id, quantity) VALUES (?, ?)`, [eventID, quantity], function (err) {
+            if (err) {
+              console.error(err);
+              return res.status(500).render('errorPage', { message: 'Error creating ticket record' });
+            }
+            res.redirect('/organiser/home');
+          });
+        }
+      });
+    });
   });
+  
   
   //Logout Button Route
 router.get('/logout', (req, res) => {
@@ -247,6 +319,7 @@ router.get('/logout', (req, res) => {
       res.redirect('/');
     });
   });
+  
   
   
 
