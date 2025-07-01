@@ -11,7 +11,7 @@
 
   <div class="container my-5">
     <div class="card shadow p-4">
-      <h1 class="text-center mb-4">🎟️ Welcome to <%= siteName %>!</h1>
+      <h1 class="text-center mb-4">🎟️ Welcome to <%= siteName %> Home Page!</h1>
 
       <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -35,23 +35,28 @@
           <% publishedEvents.forEach(event => { %>
             <li class="list-group-item">
               <div class="d-flex justify-content-between">
-                <div>
-                  <strong><%= event.title %></strong><br>
-                  <small><%= event.date %></small><br>
-                  <p class="mb-1"><%= event.description %></p>
-                  <p class="mb-0">
-                    <strong>Tickets available:</strong> <%= event.ticketCount %>
-                  </p>
+                <div style="flex-grow: 1;">
+                  <h5 class="mb-1"><%= event.title %></h5>
+                  <p class="mb-1 text-muted"><%= event.description %></p>
+          
+                  <ul class="list-unstyled small text-muted mb-2">
+                    <li><strong>Date:</strong> <%= event.date %></li>
+                    <li><strong>Created:</strong> <%= event.created_at %></li>
+                    <li><strong>Published:</strong> <%= event.published_at %></li>
+                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $5</li>
+                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $50</li>
+                  </ul>
                 </div>
-                <div class="text-end">
-                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-warning me-2">Edit</a>
-                  <form method="POST" action="/organiser/delete/<%= event.id %>" class="d-inline">
+                <div class="d-flex flex-column justify-content-start gap-2 ms-3">
+                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                  <form method="POST" action="/organiser/delete/<%= event.id %>">
                     <button class="btn btn-sm btn-outline-danger">Delete</button>
                   </form>
                 </div>
               </div>
             </li>
           <% }); %>
+          
         </ul>
         
       <% } %>
@@ -64,26 +69,31 @@
           <% draftEvents.forEach(event => { %>
             <li class="list-group-item">
               <div class="d-flex justify-content-between">
-                <div>
-                  <strong><%= event.title %></strong><br>
-                  <small>Created: <%= event.created_at %></small><br>
-                  <p class="mb-1"><%= event.description %></p>
-                  <p class="mb-0">
-                    <strong>Tickets available:</strong> <%= event.ticketCount %>
-                  </p>
+                <div style="flex-grow: 1;">
+                  <h5 class="mb-1"><%= event.title %></h5>
+                  <p class="mb-1 text-muted"><%= event.description %></p>
+          
+                  <ul class="list-unstyled small text-muted mb-2">
+                    <li><strong>Date:</strong> <%= event.date %></li>
+                    <li><strong>Created:</strong> <%= event.created_at %></li>
+                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $5</li>
+                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $50</li>
+                  </ul>
                 </div>
-                <div class="text-end">
-                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-primary">Edit</a>
-                  <form method="POST" action="/organiser/publish/<%= event.id %>" class="d-inline">
+          
+                <div class="d-flex flex-column justify-content-start gap-2 ms-3">
+                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
+                  <form method="POST" action="/organiser/publish/<%= event.id %>">
                     <button class="btn btn-sm btn-success">Publish</button>
                   </form>
-                  <form method="POST" action="/organiser/delete/<%= event.id %>" class="d-inline">
-                    <button class="btn btn-sm btn-danger">Delete</button>
+                  <form method="POST" action="/organiser/delete/<%= event.id %>">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
                   </form>
                 </div>
               </div>
             </li>
           <% }); %>
+          
         </ul>        
       <% } %>
 
