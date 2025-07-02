@@ -28,17 +28,17 @@
       <!-- Normal Tickets -->
       <div class="mb-3">
         <label>Normal Tickets</label>
-        <input type="number" name="normalQty" class="form-control" value="<%= event.normal_quantity %>" min="0" required>
+        <input type="number" name="normalQty" class="form-control" value="<%= event.normalQty %>" min="0" placeholder="Quantity" required>
         <label>Price ($)</label>
-        <input type="number" name="normalPrice" class="form-control" value="<%= event.normal_price %>" step="0.01" min="0" required>
+        <input type="number" name="normalPrice" class="form-control" value="<%= event.normalPrice %>" step="0.01" min="0" placeholder="Price (e.g: 5.00)" required>
       </div>
 
       <!-- Concession Tickets-->
       <div class="mb-3">
         <label>Concession Tickets</label>
-        <input type="number" name="concessionQty" class="form-control" value="<%= event.concession_quantity %>" min="0" required>
+        <input type="number" name="concessionQty" class="form-control" value="<%= event.concessionQty %>" min="0" placeholder="Quantity" required>
         <label>Price ($)</label>
-        <input type="number" name="concessionPrice" class="form-control" value="<%= event.concession_price %>" step="0.01" min="0" required>
+        <input type="number" name="concessionPrice" class="form-control" value="<%= event.concessionPrice %>" step="0.01" min="0" placeholder="Price (e.g 50.00)" required>
       </div>
 
       <button type="submit" class="btn btn-primary w-100">Save Changes</button>
