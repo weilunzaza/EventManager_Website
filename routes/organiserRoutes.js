@@ -300,7 +300,7 @@ router.post('/edit/:id', (req, res) => {
     if (!organiserID) return res.redirect('/organiser/login');
   
     db.serialize(() => {
-      // Update the event details
+      // Update the event info
       db.run(
         `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
         [title, description, date, eventID, organiserID],
@@ -312,28 +312,35 @@ router.post('/edit/:id', (req, res) => {
         }
       );
   
-      // Update ticket details
+      // Update normal ticket
       db.run(
-        `UPDATE tickets
-         SET normal_quantity = ?, normal_price = ?, concession_quantity = ?, concession_price = ?
-         WHERE event_id = ?`,
-        [
-          parseInt(normalQty) || 0,
-          parseFloat(normalPrice) || 0,
-          parseInt(concessionQty) || 0,
-          parseFloat(concessionPrice) || 0,
-          eventID
-        ],
+        `UPDATE tickets SET quantity = ?, price = ? WHERE event_id = ? AND type = 'normal'`,
+        [parseInt(normalQty) || 0, parseFloat(normalPrice) || 0, eventID],
         function (err) {
           if (err) {
-            console.error(err);
-            return res.status(500).render('errorPage', { message: 'Error updating ticket info' });
+            console.error("Normal ticket update error:", err);
+            return res.status(500).render('errorPage', { message: 'Error updating normal ticket info' });
           }
+        }
+      );
+  
+      // Update concession ticket
+      db.run(
+        `UPDATE tickets SET quantity = ?, price = ? WHERE event_id = ? AND type = 'concession'`,
+        [parseInt(concessionQty) || 0, parseFloat(concessionPrice) || 0, eventID],
+        function (err) {
+          if (err) {
+            console.error("Concession ticket update error:", err);
+            return res.status(500).render('errorPage', { message: 'Error updating concession ticket info' });
+          }
+  
+          // All good, redirect
           res.redirect('/organiser/home');
         }
       );
     });
 });
+  
   
   
   //Logout Button Route
