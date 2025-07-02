@@ -95,7 +95,7 @@ router.post('/register', (req, res) => {
 });
 
 
-// Organiser dashboard route
+//Organiser dashboard route
 router.get('/home', (req, res) => {
     const organiserID = req.session.organiserID;
   
@@ -174,7 +174,7 @@ router.get('/create', (req, res) => {
     res.render('createEvent');
 });
 
-// POST create Event page
+//POST create Event page
 router.post('/create', (req, res) => {
     const { title, description, date, normalQty, normalPrice, concessionQty, concessionPrice } = req.body;
     const organiserID = req.session.organiserID;
@@ -244,7 +244,7 @@ router.post('/delete/:id', (req, res) => {
     });
 });
   
-// Edit Events
+//Edit Events
 router.get('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
@@ -283,7 +283,7 @@ router.get('/edit/:id', (req, res) => {
 });
 
 
-// Handle event edit form submission (including both ticket types)
+//Handle event edit form submission (including both ticket types)
 router.post('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
@@ -344,7 +344,7 @@ router.get('/logout', (req, res) => {
     });
 });
   
-// GET organiser settings page
+//GET organiser settings page
 router.get('/settings', (req, res) => {
     const organiserID = req.session.organiserID;
   
@@ -362,7 +362,7 @@ router.get('/settings', (req, res) => {
     });
 });
   
-// POST update organiser settings
+//POST update organiser settings
 router.post('/settings', (req, res) => {
     const organiserID = req.session.organiserID;
     const { site_title, organiser_name, organiser_company } = req.body;
