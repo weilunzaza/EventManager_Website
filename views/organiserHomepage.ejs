@@ -41,10 +41,9 @@
           
                   <ul class="list-unstyled small text-muted mb-2">
                     <li><strong>Date:</strong> <%= event.date %></li>
-                    <li><strong>Created:</strong> <%= event.created_at %></li>
                     <li><strong>Published:</strong> <%= event.published_at %></li>
-                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $5</li>
-                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $50</li>
+                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
+                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>                    
                   </ul>
                 </div>
                 <div class="d-flex flex-column justify-content-start gap-2 ms-3">
@@ -76,8 +75,8 @@
                   <ul class="list-unstyled small text-muted mb-2">
                     <li><strong>Date:</strong> <%= event.date %></li>
                     <li><strong>Created:</strong> <%= event.created_at %></li>
-                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $5</li>
-                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $50</li>
+                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
+                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>                    
                   </ul>
                 </div>
           

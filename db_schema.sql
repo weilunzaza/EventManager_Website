@@ -42,12 +42,12 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS tickets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INTEGER NOT NULL,
-    normal_quantity INTEGER DEFAULT 0,
-    normal_price REAL DEFAULT 0.0,
-    concession_quantity INTEGER DEFAULT 0,
-    concession_price REAL DEFAULT 0.0,
+    type TEXT NOT NULL, -- 'normal' or 'concession'
+    quantity INTEGER NOT NULL,
+    price REAL NOT NULL,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
+
 
 
 -- Set up three users

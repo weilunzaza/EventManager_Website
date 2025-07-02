@@ -117,7 +117,7 @@ router.get('/home', (req, res) => {
         const publishedEvents = [];
   
         for (const event of events) {
-          // Get ticket quantities
+          // Get ticket details (quantity + price)
           const tickets = await new Promise((resolve, reject) => {
             db.all("SELECT * FROM tickets WHERE event_id = ?", [event.id], (err, rows) => {
               if (err) return reject(err);
@@ -125,14 +125,24 @@ router.get('/home', (req, res) => {
             });
           });
   
+          //Initialize ticket data
           event.normalQty = 0;
           event.concessionQty = 0;
+          event.normalPrice = 0;
+          event.concessionPrice = 0;
   
           for (const ticket of tickets) {
-            if (ticket.type === 'normal') event.normalQty = ticket.quantity;
-            if (ticket.type === 'concession') event.concessionQty = ticket.quantity;
+            if (ticket.type === 'normal') {
+              event.normalQty = ticket.quantity;
+              event.normalPrice = ticket.price;
+            }
+            if (ticket.type === 'concession') {
+              event.concessionQty = ticket.quantity;
+              event.concessionPrice = ticket.price;
+            }
           }
   
+          // Categorize event
           if (event.status === 'published') {
             publishedEvents.push(event);
           } else {
@@ -140,6 +150,7 @@ router.get('/home', (req, res) => {
           }
         }
   
+        // Render dashboard
         res.render('organiserHomepage', {
           organiserName: organiser.username,
           siteName: 'Event Organiser',
@@ -152,6 +163,7 @@ router.get('/home', (req, res) => {
   });
   
   
+  
 
 //GET create event page
 router.get('/create', (req, res) => {
@@ -161,7 +173,7 @@ router.get('/create', (req, res) => {
 
 // POST create Event page
 router.post('/create', (req, res) => {
-    const { title, description, date, normalQty, concessionQty } = req.body;
+    const { title, description, date, normalQty, normalPrice, concessionQty, concessionPrice } = req.body;
     const organiserID = req.session.organiserID;
   
     db.run(
@@ -176,11 +188,10 @@ router.post('/create', (req, res) => {
   
         const eventID = this.lastID;
   
-        // Insert both normal and concession tickets
         const insertTickets = db.prepare(`INSERT INTO tickets (event_id, type, quantity, price) VALUES (?, ?, ?, ?)`);
   
-        insertTickets.run(eventID, 'normal', parseInt(normalQty) || 0, 5.0);
-        insertTickets.run(eventID, 'concession', parseInt(concessionQty) || 0, 50.0);
+        insertTickets.run(eventID, 'normal', parseInt(normalQty) || 0, parseFloat(normalPrice) || 0);
+        insertTickets.run(eventID, 'concession', parseInt(concessionQty) || 0, parseFloat(concessionPrice) || 0);
   
         insertTickets.finalize((err) => {
           if (err) {
@@ -241,40 +252,51 @@ router.get('/edit/:id', (req, res) => {
   
     if (!organiserID) return res.redirect('/organiser/login');
   
+    // First get the event
     db.get(
-      `SELECT e.*, t.quantity AS ticketCount
-       FROM events e
-       LEFT JOIN tickets t ON e.id = t.event_id
-       WHERE e.id = ? AND e.organiser_id = ?`,
-      [eventID, organiserID],
-      (err, event) => {
-        if (err || !event) {
-          return res.status(500).render('errorPage', { message: 'Failed to load event for editing' });
-        }
-        // Default ticketCount to 0 if no ticket record exists
-        event.ticketCount = event.ticketCount || 0;
-        res.render('editEvent', { event });
+        `SELECT * FROM events WHERE id = ? AND organiser_id = ?`,
+        [eventID, organiserID],
+        (err, event) => {
+            if (err || !event) {
+                return res.status(500).render('errorPage', { message: 'Failed to load event for editing' });
+            }
+  
+            // Then get its tickets
+            db.all(`SELECT * FROM tickets WHERE event_id = ?`, [eventID], (err, tickets) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).render('errorPage', { message: 'Failed to load ticket info' });
+            }
+  
+            // Attach ticket info
+            for (const ticket of tickets) {
+                if (ticket.type === 'normal') {
+                event.normalQty = ticket.quantity;
+                event.normalPrice = ticket.price;
+                } else if (ticket.type === 'concession') {
+                event.concessionQty = ticket.quantity;
+                event.concessionPrice = ticket.price;
+                }
+            }
+  
+          res.render('editEvent', { event });
+        });
       }
     );
   });
+  
+  
 
 // Handle event edit form submission (including both ticket types)
 router.post('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
-    const { title, description, date, normalQty, concessionQty } = req.body;
+    const { title, description, date, normalQty, normalPrice, concessionQty, concessionPrice } = req.body;
   
     if (!organiserID) return res.redirect('/organiser/login');
   
-    if (
-      isNaN(normalQty) || normalQty < 0 ||
-      isNaN(concessionQty) || concessionQty < 0
-    ) {
-      return res.status(400).render('errorPage', { message: 'Invalid ticket quantities' });
-    }
-  
     db.serialize(() => {
-      // Update event info
+      // Update the event details
       db.run(
         `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
         [title, description, date, eventID, organiserID],
@@ -286,45 +308,29 @@ router.post('/edit/:id', (req, res) => {
         }
       );
   
-      // Upsert tickets for each type
-      const upsertTicket = (type, qty, price, callback) => {
-        db.get(`SELECT * FROM tickets WHERE event_id = ? AND type = ?`, [eventID, type], (err, row) => {
-          if (err) return callback(err);
-  
-          if (row) {
-            db.run(
-              `UPDATE tickets SET quantity = ?, price = ? WHERE event_id = ? AND type = ?`,
-              [qty, price, eventID, type],
-              callback
-            );
-          } else {
-            db.run(
-              `INSERT INTO tickets (event_id, type, quantity, price) VALUES (?, ?, ?, ?)`,
-              [eventID, type, qty, price],
-              callback
-            );
-          }
-        });
-      };
-  
-      upsertTicket('normal', parseInt(normalQty), 5.0, (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).render('errorPage', { message: 'Error saving normal ticket' });
-        }
-  
-        upsertTicket('concession', parseInt(concessionQty), 50.0, (err) => {
+      // Update ticket details
+      db.run(
+        `UPDATE tickets
+         SET normal_quantity = ?, normal_price = ?, concession_quantity = ?, concession_price = ?
+         WHERE event_id = ?`,
+        [
+          parseInt(normalQty) || 0,
+          parseFloat(normalPrice) || 0,
+          parseInt(concessionQty) || 0,
+          parseFloat(concessionPrice) || 0,
+          eventID
+        ],
+        function (err) {
           if (err) {
             console.error(err);
-            return res.status(500).render('errorPage', { message: 'Error saving concession ticket' });
+            return res.status(500).render('errorPage', { message: 'Error updating ticket info' });
           }
-  
-          // All good
           res.redirect('/organiser/home');
-        });
-      });
+        }
+      );
     });
-  });
+});
+  
   
   
   

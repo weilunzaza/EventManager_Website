@@ -26,17 +26,20 @@
         <input type="date" name="date" class="form-control" required>
       </div>
 
-      <!-- Normal Ticket -->
+      <!-- Normal Tickets -->
       <div class="mb-3">
-        <label for="normalQty" class="form-label">Normal Tickets (Price: $5)</label>
-        <input type="number" name="normalQty" id="normalQty" class="form-control" min="0" required>
+        <label>Normal Tickets</label>
+        <input type="number" name="normalQty" class="form-control mb-1" min="0" placeholder="Quantity">
+        <input type="number" name="normalPrice" class="form-control" min="0" step="0.01" placeholder="Price (e.g., 5.00)">
       </div>
 
-      <!-- Concession Ticket -->
+      <!-- Concession Tickets -->
       <div class="mb-3">
-        <label for="concessionQty" class="form-label">Concession Tickets (Price: $50)</label>
-        <input type="number" name="concessionQty" id="concessionQty" class="form-control" min="0" required>
+        <label>Concession Tickets</label>
+        <input type="number" name="concessionQty" class="form-control mb-1" min="0" placeholder="Quantity">
+        <input type="number" name="concessionPrice" class="form-control" min="0" step="0.01" placeholder="Price (e.g., 50.00)">
       </div>
+
 
       <button type="submit" class="btn btn-success w-100">Create Draft Event</button>
     </form>
