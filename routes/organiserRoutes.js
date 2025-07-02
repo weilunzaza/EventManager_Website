@@ -332,9 +332,6 @@ router.post('/edit/:id', (req, res) => {
 });
   
   
-  
-  
-  
   //Logout Button Route
 router.get('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -346,6 +343,24 @@ router.get('/logout', (req, res) => {
       res.redirect('/');
     });
   });
+  
+// GET organiser settings page
+router.get('/settings', (req, res) => {
+    const organiserID = req.session.organiserID;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.get(`SELECT * FROM settings WHERE organiser_id = ?`, [organiserID], (err, row) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).render('errorPage', { message: 'Error loading settings' });
+        }
+  
+        res.render('organiserSettings', {
+        settings: row || {}
+      });
+    });
+});
   
   
   
