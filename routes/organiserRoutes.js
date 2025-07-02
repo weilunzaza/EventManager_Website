@@ -95,7 +95,8 @@ router.post('/register', (req, res) => {
     // });
 });
 
-//Organiser dashboard route
+
+// Organiser dashboard route
 router.get('/home', (req, res) => {
     const organiserID = req.session.organiserID;
   
@@ -108,55 +109,58 @@ router.get('/home', (req, res) => {
         return res.status(500).render('errorPage', { message: 'Unable to load organiser info' });
       }
   
-      db.all("SELECT * FROM events WHERE organiser_id = ?", [organiserID], async (err, events) => {
-        if (err) {
-          return res.status(500).render('errorPage', { message: 'Unable to fetch events' });
-        }
+      db.get("SELECT * FROM settings WHERE organiser_id = ?", [organiserID], (err, settings) => {
+        // Use fallback values if settings not found
+        const organiserName = settings?.organiser_name || "Example Organiser";
+        const organiserCompany = settings?.organiser_company || "Example Company";
   
-        const draftEvents = [];
-        const publishedEvents = [];
+        db.all("SELECT * FROM events WHERE organiser_id = ?", [organiserID], async (err, events) => {
+          if (err) {
+            return res.status(500).render('errorPage', { message: 'Unable to fetch events' });
+          }
   
-        for (const event of events) {
-          // Get ticket details (quantity + price)
-          const tickets = await new Promise((resolve, reject) => {
-            db.all("SELECT * FROM tickets WHERE event_id = ?", [event.id], (err, rows) => {
-              if (err) return reject(err);
-              resolve(rows);
+          const draftEvents = [];
+          const publishedEvents = [];
+  
+          for (const event of events) {
+            const tickets = await new Promise((resolve, reject) => {
+              db.all("SELECT * FROM tickets WHERE event_id = ?", [event.id], (err, rows) => {
+                if (err) return reject(err);
+                resolve(rows);
+              });
             });
+  
+            event.normalQty = 0;
+            event.concessionQty = 0;
+            event.normalPrice = 0;
+            event.concessionPrice = 0;
+  
+            for (const ticket of tickets) {
+              if (ticket.type === 'normal') {
+                event.normalQty = ticket.quantity;
+                event.normalPrice = ticket.price;
+              }
+              if (ticket.type === 'concession') {
+                event.concessionQty = ticket.quantity;
+                event.concessionPrice = ticket.price;
+              }
+            }
+  
+            if (event.status === 'published') {
+              publishedEvents.push(event);
+            } else {
+              draftEvents.push(event);
+            }
+          }
+  
+          res.render('organiserHomepage', {
+            organiserName, // from settings or fallback
+            organiserCompany, // from settings or fallback
+            siteName: 'Event Organiser',
+            siteDescription: 'Your go-to portal for awesome events!',
+            draftEvents,
+            publishedEvents
           });
-  
-          //Initialize ticket data
-          event.normalQty = 0;
-          event.concessionQty = 0;
-          event.normalPrice = 0;
-          event.concessionPrice = 0;
-  
-          for (const ticket of tickets) {
-            if (ticket.type === 'normal') {
-              event.normalQty = ticket.quantity;
-              event.normalPrice = ticket.price;
-            }
-            if (ticket.type === 'concession') {
-              event.concessionQty = ticket.quantity;
-              event.concessionPrice = ticket.price;
-            }
-          }
-  
-          // Categorize event
-          if (event.status === 'published') {
-            publishedEvents.push(event);
-          } else {
-            draftEvents.push(event);
-          }
-        }
-  
-        // Render dashboard
-        res.render('organiserHomepage', {
-          organiserName: organiser.username,
-          siteName: 'Event Organiser',
-          siteDescription: 'Your go-to portal for awesome events!',
-          draftEvents,
-          publishedEvents
         });
       });
     });
@@ -359,6 +363,50 @@ router.get('/settings', (req, res) => {
         res.render('organiserSettings', {
         settings: row || {}
       });
+    });
+});
+  
+// POST update organiser settings
+router.post('/settings', (req, res) => {
+    const organiserID = req.session.organiserID;
+    const { site_title, organiser_name, organiser_company } = req.body;
+  
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    // First, check if settings already exist
+    db.get(`SELECT * FROM settings WHERE organiser_id = ?`, [organiserID], (err, existingSettings) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).render('errorPage', { message: 'Error loading settings' });
+        }
+    
+        if (existingSettings) {
+            // Update existing settings
+            db.run(
+                `UPDATE settings SET site_title = ?, organiser_name = ?, organiser_company = ? WHERE organiser_id = ?`,
+                [site_title, organiser_name, organiser_company, organiserID],
+                (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).render('errorPage', { message: 'Error updating settings' });
+                    }
+                    res.redirect('/organiser/home');
+                }   
+            );
+        } else {
+            // Insert new settings
+            db.run(
+                `INSERT INTO settings (organiser_id, site_title, organiser_name, organiser_company) VALUES (?, ?, ?, ?)`,
+                [organiserID, site_title, organiser_name, organiser_company],
+                (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).render('errorPage', { message: 'Error saving new settings' });
+                    }
+                    res.redirect('/organiser/home');
+                }
+            );
+        }
     });
 });
   

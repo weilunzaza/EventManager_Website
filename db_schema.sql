@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS tickets (
 -- Settings Table
 CREATE TABLE IF NOT EXISTS settings (
     organiser_id INTEGER PRIMARY KEY,
-    site_name TEXT,
+    site_title TEXT,
     organiser_name TEXT,
-    oganiser_company TEXT,
+    organiser_company TEXT,
     FOREIGN KEY (organiser_id) REFERENCES organisers(id)
 );
 
