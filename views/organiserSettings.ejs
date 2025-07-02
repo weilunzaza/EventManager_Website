@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Organiser Settings</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+
+  <div class="card shadow p-4" style="width: 100%; max-width: 500px;">
+    <h2 class="text-center mb-4">Organiser Settings</h2>
+
+    <form method="POST" action="/organiser/settings">
+      <div class="mb-3">
+        <label class="form-label fw-bold">Organiser Title</label>
+        <input type="text" name="siteName" class="form-control" value="<%= settings.siteName || '' %>" placeholder="e.g. EventManager 3000" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Organiser Name</label>
+        <input type="text" name="organiserName" class="form-control" value="<%= settings.organiserName || '' %>" placeholder="e.g. Alice Tan" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Organiser Company</label>
+        <input type="text" name="organiserCompany" class="form-control" value="<%= settings.organiserCompany || '' %>" placeholder="e.g. Alpha Events Pte Ltd">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Save Settings</button>
+    </form>
+
+    <div class="text-center mt-3">
+      <a href="/organiser/home" class="text-decoration-none">← Back to Dashboard</a>
+    </div>
+  </div>
+
+</body>
+</html>
