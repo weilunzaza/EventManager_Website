@@ -13,7 +13,7 @@
     <form method="POST" action="/organiser/settings">
       <div class="mb-3">
         <label class="form-label fw-bold">Organiser Title</label>
-        <input type="text" name="site_title" class="form-control" value="<%= settings.site_title || '' %>" placeholder="e.g. EventManager 3000" required>
+        <input type="text" name="site_title" class="form-control" value="<%= settings.site_title || '' %>" placeholder="e.g. EventManager 3000" required autofocus>
       </div>
 
       <div class="mb-3">
