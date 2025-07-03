@@ -43,6 +43,8 @@ const usersRoutes = require('./routes/users');
 app.use('/users', usersRoutes);
 const organiserRoutes = require('./routes/organiserRoutes');
 app.use('/organiser', organiserRoutes);
+const attendeeRoutes = require('./routes/attendeeRoutes');
+app.use('/attendee', attendeeRoutes);
 
 
 // Make the web application listen for HTTP requests

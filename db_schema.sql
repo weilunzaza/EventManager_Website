@@ -57,6 +57,19 @@ CREATE TABLE IF NOT EXISTS settings (
     FOREIGN KEY (organiser_id) REFERENCES organisers(id)
 );
 
+-- Bookings table
+CREATE TABLE IF NOT EXISTS bookings (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id INTEGER NOT NULL,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  normal_qty INTEGER DEFAULT 0,
+  concession_qty INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+
 
 -- Set up three users
 INSERT INTO users ('user_name') VALUES ('Simon Star');
