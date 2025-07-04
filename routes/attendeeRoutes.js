@@ -93,7 +93,7 @@ router.get('/book/:id', (req, res) => {
 
 // Handle ticket booking submission
 router.post('/book/:id', (req, res) => {
-    const eventID = req.params.id;
+    const eventID = parseInt(req.params.id); //ensuring that this is an integer as eventID is a number
     const { fullName, email, normalQty, concessionQty } = req.body;
   
     const normQty = parseInt(normalQty) || 0;
@@ -139,7 +139,7 @@ router.post('/book/:id', (req, res) => {
                     `UPDATE tickets SET quantity = quantity - ? WHERE event_id = ? AND type = 'concession'`,
                     [concQty, eventID]);
                 
-                    res.render('successPage', { message: 'Booking confirmed! Check your email for confirmation.' });
+                    res.render('successBook', { message: 'Booking confirmed!' });
             }
         );
     });
