@@ -144,6 +144,53 @@ router.post('/book/:id', (req, res) => {
         );
     });
 });
+
+
+router.post('/checkout/:id', (req, res) => {
+    const eventID = req.params.id;
+    const { fullName, email, normalQty, concessionQty } = req.body;
+  
+    const normQty = parseInt(normalQty) || 0;
+    const concQty = parseInt(concessionQty) || 0;
+  
+    if (!fullName || !email || (normQty + concQty <= 0)) {
+        return res.status(400).render('errorPage', { message: 'Please complete all fields and select at least one ticket.' });
+    }
+  
+    db.get("SELECT * FROM events WHERE id = ? AND status = 'published'", [eventID], (err, event) => {
+        if (err || !event) {
+            return res.status(500).render('errorPage', { message: 'Event not found.' });
+        }
+  
+        // Get ticket prices from the tickets table
+        db.all("SELECT * FROM tickets WHERE event_id = ?", [eventID], (err, tickets) => {
+            if (err || !tickets.length) {
+                return res.status(500).render('errorPage', { message: 'Tickets not found for this event.' });
+            }
+  
+            let normalPrice = 0;
+            let concessionPrice = 0;
+  
+            for (const ticket of tickets) {
+                if (ticket.type === 'normal') normalPrice = ticket.price;
+                if (ticket.type === 'concession') concessionPrice = ticket.price;
+            }
+  
+            const total = (normQty * normalPrice) + (concQty * concessionPrice);
+  
+            res.render('checkoutPage', {
+                event,
+                fullName,
+                email,
+                normalQty: normQty,
+                concessionQty: concQty,
+                normalPrice,
+                concessionPrice,
+                total
+            });
+        });
+    });
+});
   
   
 
