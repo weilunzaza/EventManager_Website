@@ -3,35 +3,59 @@
 <head>
   <title>Attendee - Events</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .event-card {
+      transition: transform 0.2s ease-in-out;
+    }
+    .event-card:hover {
+      transform: scale(1.02);
+    }
+  </style>
 </head>
 <body class="bg-light">
 
-  <div class="container mt-5">
-    <h1 class="mb-4">Available Events</h1>
+  <div class="container my-5">
+    <div class="text-center mb-5">
+      <h1 class="display-5 fw-bold">🎫 Browse Upcoming Events</h1>
+      <p class="text-muted">Find events that interest you and book your spot now!</p>
+    </div>
 
     <% if (events.length === 0) { %>
-      <p>No events available right now.</p>
+      <div class="alert alert-info text-center">
+        No events available at the moment. Check back soon!
+      </div>
     <% } else { %>
-      <div class="list-group">
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         <% events.forEach(event => { %>
-          <div class="list-group-item mb-3">
-            <h4><%= event.title %></h4>
-            <p><%= event.description %></p>
-            <p>
-              <strong>Date:</strong> <%= event.date %><br>
-              <strong>Organiser:</strong> <%= event.organiser_name || event.organiser_username %><br>
-              <strong>Company:</strong> <%= event.organiser_company || 'N/A' %><br>
-              <strong>Normal Tickets:</strong> <%= event.normalQty %> available at $<%= event.normalPrice.toFixed(2) %><br>
-              <strong>Concession Tickets:</strong> <%= event.concessionQty %> available at $<%= event.concessionPrice.toFixed(2) %>
-              <a href="/attendee/book/<%= event.id %>" class="btn btn-primary mt-2" >Book Now</a>
-            </p>
+          <div class="col">
+            <div class="card shadow-sm event-card h-100">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><%= event.title %></h5>
+                <p class="card-text"><%= event.description %></p>
+                <ul class="list-unstyled small text-muted mb-3">
+                  <li><strong>Date:</strong> <%= event.date %></li>
+                  <li><strong>Organiser:</strong> <%= event.organiser_name || event.organiser_username %></li>
+                  <li><strong>Company:</strong> <%= event.organiser_company || 'N/A' %></li>
+                </ul>
+
+                <div class="mb-3">
+                  <span class="badge bg-primary">Normal: <%= event.normalQty %> × $<%= event.normalPrice.toFixed(2) %></span><br>
+                  <span class="badge bg-warning text-dark mt-1">Concession: <%= event.concessionQty %> × $<%= event.concessionPrice.toFixed(2) %></span>
+                </div>
+
+                <a href="/attendee/book/<%= event.id %>" class="btn btn-success mt-auto">Book Now</a>
+              </div>
+            </div>
           </div>
         <% }); %>
       </div>
     <% } %>
 
-    <a href="/" class="btn btn-secondary mt-4">Back to Home</a>
+    <div class="text-center mt-5">
+      <a href="/" class="btn btn-outline-secondary">← Back to Home</a>
+    </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

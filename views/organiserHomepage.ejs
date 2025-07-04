@@ -1,103 +1,104 @@
-<!-- This will be organiser home page when they log in -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Organiser Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/style1.css">
+  <style>
+    .event-card {
+      transition: transform 0.2s ease-in-out;
+    }
+    .event-card:hover {
+      transform: scale(1.02);
+    }
+  </style>
 </head>
 <body class="bg-light">
 
   <div class="container my-5">
-    <div class="card shadow p-4">
-      <h1 class="text-center mb-4">🎟️ Welcome <strong> <%= organiserName%> </strong> to <%= siteName %> Home Page!</h1>
+    <div class="text-center mb-5">
+      <h1 class="display-5 fw-bold">🎟️ Welcome <%= organiserName %> to <%= siteName %>!</h1>
+      <p class="text-muted">Manage your events below.</p>
+    </div>
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <strong>Organiser:</strong> <%= organiserName %><br>
-          <strong>Company:</strong> <%= organiserCompany %><br>
-          <span class="text-muted"><%= siteDescription %></span>
-        </div>
-        <div>
-          <a href="/organiser/settings" class="btn btn-outline-primary me-2">Settings</a>
-          <a href="/organiser/create" class="btn btn-success">Create New Event</a>
-          <a href="/organiser/logout" class="btn btn-dark ms-2">Logout</a>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <p class="mb-1"><strong>Organiser:</strong> <%= organiserName %></p>
+        <p class="mb-1"><strong>Company:</strong> <%= organiserCompany %></p>
+        <p class="text-muted"><%= siteDescription %></p>
       </div>
+      <div>
+        <a href="/organiser/settings" class="btn btn-outline-primary me-2">Settings</a>
+        <a href="/organiser/create" class="btn btn-success me-2">+ New Event</a>
+        <a href="/organiser/logout" class="btn btn-dark">Logout</a>
+      </div>
+    </div>
 
-      <hr>
-
-      <h3 class="text-success">Published Events</h3>
-      <% if (publishedEvents.length === 0) { %>
-        <p class="text-muted">No published events yet. Get started!</p>
-      <% } else { %>
-        <ul class="list-group mb-4">
-          <% publishedEvents.forEach(event => { %>
-            <li class="list-group-item">
-              <div class="d-flex justify-content-between">
-                <div style="flex-grow: 1;">
-                  <h5 class="mb-1"><%= event.title %></h5>
-                  <p class="mb-1 text-muted"><%= event.description %></p>
-          
-                  <ul class="list-unstyled small text-muted mb-2">
-                    <li><strong>Date:</strong> <%= event.date %></li>
-                    <li><strong>Published:</strong> <%= event.published_at %></li>
-                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
-                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>                    
-                  </ul>
-                </div>
-                <div class="d-flex flex-column justify-content-start gap-2 ms-3">
-                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
-                  <form method="POST" action="/organiser/delete/<%= event.id %>">
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+    <!-- Published Events -->
+    <h3 class="text-success mb-3">Published Events</h3>
+    <% if (publishedEvents.length === 0) { %>
+      <div class="alert alert-info">No published events yet. Start creating!</div>
+    <% } else { %>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        <% publishedEvents.forEach(event => { %>
+          <div class="col">
+            <div class="card shadow-sm event-card h-100">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><%= event.title %></h5>
+                <p class="card-text text-muted"><%= event.description %></p>
+                <ul class="list-unstyled small text-muted mb-3">
+                  <li><strong>Date:</strong> <%= event.date %></li>
+                  <li><strong>Published:</strong> <%= event.published_at %></li>
+                  <li><strong>Normal:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
+                  <li><strong>Concession:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>
+                </ul>
+                <div class="mt-auto d-flex gap-2">
+                  <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary w-100">Edit</a>
+                  <form method="POST" action="/organiser/delete/<%= event.id %>" class="w-100">
+                    <button class="btn btn-sm btn-outline-danger w-100">Delete</button>
                   </form>
                 </div>
               </div>
-            </li>
-          <% }); %>
-          
-        </ul>
-        
-      <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
 
-      <h3 class="text-warning">Draft Events</h3>
-      <% if (draftEvents.length === 0) { %>
-        <p class="text-muted">No drafts. Start something new!</p>
-      <% } else { %>
-        <ul class="list-group">
-          <% draftEvents.forEach(event => { %>
-            <li class="list-group-item">
-              <div class="d-flex justify-content-between">
-                <div style="flex-grow: 1;">
-                  <h5 class="mb-1"><%= event.title %></h5>
-                  <p class="mb-1 text-muted"><%= event.description %></p>
-          
-                  <ul class="list-unstyled small text-muted mb-2">
-                    <li><strong>Date:</strong> <%= event.date %></li>
-                    <li><strong>Created:</strong> <%= event.created_at %></li>
-                    <li><strong>Normal Tickets:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
-                    <li><strong>Concession Tickets:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>                    
-                  </ul>
-                </div>
-          
-                <div class="d-flex flex-column justify-content-start gap-2 ms-3">
+    <!-- Draft Events -->
+    <h3 class="text-warning mb-3">Draft Events</h3>
+    <% if (draftEvents.length === 0) { %>
+      <div class="alert alert-secondary">No drafts available. Click "New Event" to begin.</div>
+    <% } else { %>
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <% draftEvents.forEach(event => { %>
+          <div class="col">
+            <div class="card shadow-sm event-card h-100">
+              <div class="card-body d-flex flex-column">
+                <h5 class="card-title"><%= event.title %></h5>
+                <p class="card-text text-muted"><%= event.description %></p>
+                <ul class="list-unstyled small text-muted mb-3">
+                  <li><strong>Date:</strong> <%= event.date %></li>
+                  <li><strong>Created:</strong> <%= event.created_at %></li>
+                  <li><strong>Normal:</strong> <%= event.normalQty %> × $<%= event.normalPrice %></li>
+                  <li><strong>Concession:</strong> <%= event.concessionQty %> × $<%= event.concessionPrice %></li>
+                </ul>
+                <div class="mt-auto d-flex flex-column gap-2">
                   <a href="/organiser/edit/<%= event.id %>" class="btn btn-sm btn-outline-primary">Edit</a>
                   <form method="POST" action="/organiser/publish/<%= event.id %>">
-                    <button class="btn btn-sm btn-success">Publish</button>
+                    <button class="btn btn-sm btn-success w-100">Publish</button>
                   </form>
                   <form method="POST" action="/organiser/delete/<%= event.id %>">
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    <button class="btn btn-sm btn-outline-danger w-100">Delete</button>
                   </form>
                 </div>
               </div>
-            </li>
-          <% }); %>
-          
-        </ul>        
-      <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
 
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
