@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   normal_qty INTEGER DEFAULT 0,
   concession_qty INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (event_id) REFERENCES events(id)
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
 

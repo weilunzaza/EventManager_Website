@@ -23,7 +23,7 @@
               <strong>Company:</strong> <%= event.organiser_company || 'N/A' %><br>
               <strong>Normal Tickets:</strong> <%= event.normalQty %> available at $<%= event.normalPrice.toFixed(2) %><br>
               <strong>Concession Tickets:</strong> <%= event.concessionQty %> available at $<%= event.concessionPrice.toFixed(2) %>
-              <a href="/attendee/book/<%= event.id %>" class="btn btn-primary mt-2">Book Now</a>
+              <a href="/attendee/book/<%= event.id %>" class="btn btn-primary mt-2" >Book Now</a>
             </p>
           </div>
         <% }); %>
