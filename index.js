@@ -6,6 +6,7 @@ const port = 3000;
 const path = require('path')
 var bodyParser = require("body-parser");
 const session = require('express-session');
+
 app.use(session({
     secret: 'your-secret-key', //use an environment variable in production
     resave: false,

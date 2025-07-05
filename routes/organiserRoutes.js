@@ -406,7 +406,31 @@ router.post('/settings', (req, res) => {
     });
 });
   
+// View all bookings for organiser's events
+router.get('/bookings', (req, res) => {
+    const organiserID = req.session.organiserID;
   
+    if (!organiserID) return res.redirect('/organiser/login');
+  
+    db.all(`
+        SELECT 
+            bookings.*, 
+            events.title AS event_title 
+        FROM bookings 
+        JOIN events ON bookings.event_id = events.id
+        WHERE events.organiser_id = ?
+        ORDER BY bookings.created_at DESC`, 
+        [organiserID], 
+        (err, bookings) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).render('errorPage', { message: 'Error loading bookings' });
+            }
+            res.render('organiserBookings', { bookings });
+        }
+    );
+});
+
   
 
 
