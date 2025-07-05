@@ -4,20 +4,30 @@
   <meta charset="UTF-8">
   <title>Booking Confirmed</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .success-card {
+      max-width: 500px;
+      width: 100%;
+      border-radius: 15px;
+    }
+    .emoji {
+      font-size: 3rem;
+      display: block;
+    }
+  </style>
 </head>
 <body class="bg-light d-flex justify-content-center align-items-center" style="min-height: 100vh;">
 
-  <div class="card p-5 shadow" style="max-width: 500px; width: 100%;">
-    <h2 class="text-success text-center mb-4">🎉 Booking Confirmed!</h2>
-    <p class="text-center">Thank you for booking tickets. A confirmation message has been shown below:</p>
-    
-    <div class="alert alert-success text-center">
+  <div class="card p-5 shadow success-card text-center">
+    <span class="emoji mb-3">🎉</span>
+    <h2 class="text-success mb-3">Booking Confirmed!</h2>
+    <p class="mb-4">Thank you for booking your tickets.<br>We look forward to seeing you at the event!</p>
+
+    <div class="alert alert-success">
       <%= message || "Your tickets have been successfully booked." %>
     </div>
 
-    <div class="text-center mt-3">
-      <a href="/attendee/home" class="btn btn-outline-primary">Back to Events</a>
-    </div>
+    <a href="/attendee/home" class="btn btn-outline-primary mt-3">← Back to Events</a>
   </div>
 
 </body>
