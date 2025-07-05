@@ -18,18 +18,24 @@ router.get('/login', (req, res) => {
 
 //organiser Login Logic
 router.post('/login', (req, res) => {
+    //Destructure username and password from the submitted form data
     const { username, password } = req.body;
 
+    //look up the organiser in the database by their username
     db.get("SELECT * FROM organisers WHERE username = ?", [username], (err, organiser) => {
+        //if error or organiser does not exists, show Invalid Credentials
         if (err || !organiser) {
             return res.status(500).render('errorPage', { message: 'Invalid credentials' });
         }
 
+        //Compare the submitted password with the hashed password stored in the database
+        //uses bcrypt to securely compare the submitted password with the hashed one
         bcrypt.compare(password, organiser.password, (err, result) => {
             if (result) {
-                req.session.isLoggedIn = true;
-                req.session.organiserID = organiser.id;
-                res.redirect('/organiser/home');
+                //If password matches, set session variables to log the user in
+                req.session.isLoggedIn = true; //indicates user is logged in
+                req.session.organiserID = organiser.id; //stores organiser's ID for future use
+                res.redirect('/organiser/home'); //redirect to organiser dashboard
             } else {
                 return res.status(500).render('errorPage', { message: 'Invalid credentials' });
             }
@@ -46,74 +52,55 @@ router.get('/register', (req, res) => {
 router.post('/register', (req, res) => {
     const { username, password } = req.body;
 
-     // Check if username already exists
-     db.get("SELECT * FROM organisers WHERE username = ?", [username], (err, existingUser) => {
+     //Check if username already exists
+    db.get("SELECT * FROM organisers WHERE username = ?", [username], (err, existingUser) => {
         if (err) {
             console.error("registration DB error: ", err);
             return res.status(500).send("Database error");
         }
         if (existingUser) {
+            //if username exists, show error page
             return res.render('errorPage', { message: "Username already taken" });
         }
 
-        // Hash the password
+        //Hash the password using bcrypt
         bcrypt.hash(password, 10, (err, hash) => {
             if (err) return res.status(500).send("Error hashing password");
 
-            // Insert into the database
+            //Insert the new organiser into the database with the hashed password
             db.run("INSERT INTO organisers (username, password) VALUES (?, ?)", [username, hash], (err) => {
                 if (err) return res.status(500).send("Error saving organiser");
 
-                // Redirect to login
+                //Redirect to login if registration successful
                 res.redirect('/organiser/login');
             });
         });
     });
-    // bcrypt.hash(password, 10, (err, hashedPassword) => {
-    //     if (err) {
-    //         return res.status(500).render('errorPage', { message: 'Error creating hashed password' });
-    //     }
-
-    //     db.run("INSERT INTO organisers (username, password) VALUES (?, ?)", [username, hashedPassword], function(err) {
-    //         if (err) {
-    //             return res.status(500).render('errorPage', { message: 'Error creating user' });
-    //         }
-
-    //         const organiserId = this.lastID;
-
-    //         db.run("INSERT INTO settings (organiser_id, site_name, organiser_name) VALUES (?, ?, ?)",
-    //             [organiserId, 'My Event Portal', username],
-    //             (err) => {
-    //                 if (err) {
-    //                     return res.status(500).render('errorPage', { message: 'Error creating default settings' });
-    //                 }
-    //                 res.redirect('/organiser/login');
-    //             }
-    //         );
-    //     });
-    // });
 });
-
 
 //Organiser dashboard route
 router.get('/home', (req, res) => {
     const organiserID = req.session.organiserID;
-  
+    
+    //Redirect if organiser not authenticated
     if (!organiserID) {
       return res.redirect('/organiser/login');
     }
-  
+    
+    //Retrieve organiser details using the ID from session
     db.get("SELECT * FROM organisers WHERE id = ?", [organiserID], (err, organiser) => {
         if (err || !organiser) {
             return res.status(500).render('errorPage', { message: 'Unable to load organiser info' });
         }
         
+        //Retrieve organiser's custom settings like name and company
         db.get("SELECT * FROM settings WHERE organiser_id = ?", [organiserID], 
         (err, settings) => {
             // Use fallback values if settings not found
             const organiserName = settings?.organiser_name || "Example Organiser";
             const organiserCompany = settings?.organiser_company || "Example Company";
             
+            //Retrieve all events created by this organiser
             db.all("SELECT * FROM events WHERE organiser_id = ?", [organiserID], async (err, events) => {
                 if (err) {
                     return res.status(500).render('errorPage', { message: 'Unable to fetch events' });
@@ -122,6 +109,7 @@ router.get('/home', (req, res) => {
                 const draftEvents = [];
                 const publishedEvents = [];
                 
+                //for each event get ticket information, normal and concession
                 for (const event of events) {
                     const tickets = await new Promise((resolve, reject) => {
                         db.all("SELECT * FROM tickets WHERE event_id = ?", [event.id], (err, rows) => {
@@ -129,12 +117,14 @@ router.get('/home', (req, res) => {
                             resolve(rows);
                         });
                     });
-    
+                    
+                    //Initializing ticket info to 0 
                     event.normalQty = 0;
                     event.concessionQty = 0;
                     event.normalPrice = 0;
                     event.concessionPrice = 0;
-    
+                    
+                    //Assign ticket quantities and prices based on type
                     for (const ticket of tickets) {
                         if (ticket.type === 'normal') {
                             event.normalQty = ticket.quantity;
@@ -145,14 +135,16 @@ router.get('/home', (req, res) => {
                             event.concessionPrice = ticket.price;
                         }
                     }
-    
+                    
+                    //Categorize event into published or draft
                     if (event.status === 'published') {
                         publishedEvents.push(event);
                     } else {
                         draftEvents.push(event);
                     }
                 }
-  
+                
+                //Render the organiser homepage with all relevant info
                 res.render('organiserHomepage', {
                     organiserName, // from settings or fallback
                     organiserCompany, // from settings or fallback
@@ -282,7 +274,6 @@ router.get('/edit/:id', (req, res) => {
     );
 });
 
-
 //Handle event edit form submission (including both ticket types)
 router.post('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
@@ -329,8 +320,6 @@ router.post('/edit/:id', (req, res) => {
         );
     });
 });
-  
-  
   
 //Logout Button Route
 router.get('/logout', (req, res) => {
