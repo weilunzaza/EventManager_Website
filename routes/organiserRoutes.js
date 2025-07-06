@@ -207,13 +207,17 @@ router.post('/create', (req, res) => {
     );
 });
 
-//Publish Events
+//Publish Events -- Published a draft event
 router.post('/publish/:id', (req, res) => {
+    //Retrieve the organiser's ID from the current session
     const organiserID = req.session.organiserID;
+    //Get the event ID from the route parameter
     const eventID = req.params.id;
-  
+    
+    //return to login page if no organiser logged in
     if (!organiserID) return res.redirect('/organiser/login');
-  
+    
+    //Update the event's status to become 'published' and log the timestap
     db.run(
         `UPDATE events SET status = 'published', published_at = datetime('now') WHERE id = ? AND organiser_id = ?`,
         [eventID, organiserID], 
@@ -222,6 +226,7 @@ router.post('/publish/:id', (req, res) => {
                 console.error(err);
                 return res.status(500).render('errorPage', { message: 'Error publishing event' });
             }
+            //success redirect to organiser homepage
             res.redirect('/organiser/home');
         }
     );
@@ -229,11 +234,16 @@ router.post('/publish/:id', (req, res) => {
 
 //Deleting events
 router.post('/delete/:id', (req, res) => {
+    //Retrieve the organiser's ID from the current session
     const organiserID = req.session.organiserID;
+    //Getting the event ID from the route parameter
     const eventID = req.params.id;
-  
+    
+    //redirect to organiser login if there is no organiser logged in
     if (!organiserID) return res.redirect('/organiser/login');
-  
+    
+    //Delete the event from the database
+    //Only deletes the event if it belongs to the currently logged in organiser
     db.run("DELETE FROM events WHERE id = ? AND organiser_id = ?",
     [eventID, organiserID],
     (err) => {
@@ -241,18 +251,21 @@ router.post('/delete/:id', (req, res) => {
           console.error("Delete error:", err);
           return res.status(500).render('errorPage', { message: 'Failed to delete event' });
         }
+        //redirecting to organiser home page after successful deletion
         res.redirect('/organiser/home');
     });
 });
   
 //Edit Events
 router.get('/edit/:id', (req, res) => {
+    //Retrieve the organiser's ID from the current session
     const organiserID = req.session.organiserID;
+    //Extract event ID from parameter
     const eventID = req.params.id;
-  
+
     if (!organiserID) return res.redirect('/organiser/login');
   
-    // First get the event
+    // Fetching the event from the database, making sure it belongs to the logged in organsier
     db.get(
         `SELECT * FROM events WHERE id = ? AND organiser_id = ?`,
         [eventID, organiserID],
@@ -261,13 +274,13 @@ router.get('/edit/:id', (req, res) => {
                 return res.status(500).render('errorPage', { message: 'Failed to load event for editing' });
             }
   
-            // Then get its tickets
+            //After retrieving events, fetch associated ticket types
             db.all(`SELECT * FROM tickets WHERE event_id = ?`, [eventID], (err, tickets) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).render('errorPage', { message: 'Failed to load ticket info' });
                 }
-                // Attach ticket info
+                //Need to loop through all the tickets and assign values to the event object so they can be pre populated in the form
                 for (const ticket of tickets) {
                     if (ticket.type === 'normal') {
                         event.normalQty = ticket.quantity;
@@ -277,6 +290,7 @@ router.get('/edit/:id', (req, res) => {
                         event.concessionPrice = ticket.price;
                     }
                 }
+                //Render the editEvent.ejs page and pass the fill event object
                 res.render('editEvent', { event });
             });
         }
@@ -287,12 +301,14 @@ router.get('/edit/:id', (req, res) => {
 router.post('/edit/:id', (req, res) => {
     const organiserID = req.session.organiserID;
     const eventID = req.params.id;
+    //Extract updated form values from the request body
     const { title, description, date, normalQty, normalPrice, concessionQty, concessionPrice } = req.body;
   
     if (!organiserID) return res.redirect('/organiser/login');
-  
+    
+    //Using serialize to ensure updates are run in order
     db.serialize(() => {
-        // Update the event info
+        // Update the event's basic info (title, description, date)
         db.run(
             `UPDATE events SET title = ?, description = ?, date = ? WHERE id = ? AND organiser_id = ?`,
             [title, description, date, eventID, organiserID],
@@ -303,7 +319,7 @@ router.post('/edit/:id', (req, res) => {
                 }
             }
         );
-        // Update normal ticket
+        // Update normal ticket info (quantity, price)
         db.run(
             `UPDATE tickets SET quantity = ?, price = ? WHERE event_id = ? AND type = 'normal'`,
             [parseInt(normalQty) || 0, parseFloat(normalPrice) || 0, eventID],
@@ -314,7 +330,7 @@ router.post('/edit/:id', (req, res) => {
                 }
             }
         );
-        // Update concession ticket
+        // Update concession ticket info (quantity, price)
         db.run(
             `UPDATE tickets SET quantity = ?, price = ? WHERE event_id = ? AND type = 'concession'`,
             [parseInt(concessionQty) || 0, parseFloat(concessionPrice) || 0, eventID],
@@ -323,7 +339,7 @@ router.post('/edit/:id', (req, res) => {
                     console.error("Concession ticket update error:", err);
                     return res.status(500).render('errorPage', { message: 'Error updating concession ticket info' });
                 }
-                // All good, redirect
+                // redirect to organiser home once all updates are done
                 res.redirect('/organiser/home');
             }
         );
@@ -344,18 +360,20 @@ router.get('/logout', (req, res) => {
   
 //GET organiser settings page
 router.get('/settings', (req, res) => {
+    //retrieve organiser's session id
     const organiserID = req.session.organiserID;
   
     if (!organiserID) return res.redirect('/organiser/login');
-  
+    
+    //Query the settings table for specific organiser
     db.get(`SELECT * FROM settings WHERE organiser_id = ?`, [organiserID], (err, row) => {
         if (err) {
             console.error(err);
             return res.status(500).render('errorPage', { message: 'Error loading settings' });
         }
-  
+        //Render the settings page with existing settings
         res.render('organiserSettings', {
-            settings: row || {}
+            settings: row || {} //fall back to empty object to prevent EJS errors
         });
     });
 });
@@ -367,7 +385,7 @@ router.post('/settings', (req, res) => {
   
     if (!organiserID) return res.redirect('/organiser/login');
   
-    // First, check if settings already exist
+    // First, check if settings already exist for this organiser
     db.get(`SELECT * FROM settings WHERE organiser_id = ?`, [organiserID], (err, existingSettings) => {
         if (err) {
             console.error(err);
@@ -375,7 +393,7 @@ router.post('/settings', (req, res) => {
         }
     
         if (existingSettings) {
-            // Update existing settings
+            //if settings exist, update the settings
             db.run(
                 `UPDATE settings SET site_title = ?, organiser_name = ?, organiser_company = ? WHERE organiser_id = ?`,
                 [site_title, organiser_name, organiser_company, organiserID],
@@ -388,7 +406,7 @@ router.post('/settings', (req, res) => {
                 }   
             );
         } else {
-            // Insert new settings
+            //If there are no settings yet, insert new record
             db.run(
                 `INSERT INTO settings (organiser_id, site_title, organiser_name, organiser_company) VALUES (?, ?, ?, ?)`,
                 [organiserID, site_title, organiser_name, organiser_company],
@@ -409,7 +427,8 @@ router.get('/bookings', (req, res) => {
     const organiserID = req.session.organiserID;
   
     if (!organiserID) return res.redirect('/organiser/login');
-  
+    
+    //Query bookings that belong to events created by this organiser
     db.all(`
         SELECT 
             bookings.*, 
