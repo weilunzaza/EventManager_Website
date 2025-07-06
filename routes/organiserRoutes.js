@@ -166,11 +166,13 @@ router.get('/create', (req, res) => {
     res.render('createEvent');
 });
 
-//POST create Event page
+//POST create Event page which handles the creation of a new event with ticket types
 router.post('/create', (req, res) => {
+    //extract form inputs from the request body
     const { title, description, date, normalQty, normalPrice, concessionQty, concessionPrice } = req.body;
     const organiserID = req.session.organiserID;
-  
+    
+    //Insert the new event into the 'events' table with 'draft' status
     db.run(
       `INSERT INTO events (organiser_id, title, description, date, status, created_at)
        VALUES (?, ?, ?, ?, 'draft', datetime('now'))`, [organiserID, title, description, date], 
@@ -179,19 +181,26 @@ router.post('/create', (req, res) => {
                 console.error(err);
                 return res.status(500).render('errorPage', { message: 'Error saving event' });
             }
-    
+            
+            //storing the newly created event's ID for inserting tickets
             const eventID = this.lastID;
-    
+            
+            //Prepare statement for inserting tickets associated with this event
             const insertTickets = db.prepare(`INSERT INTO tickets (event_id, type, quantity, price) VALUES (?, ?, ?, ?)`);
-    
+            
+            //Insert normal ticket info
             insertTickets.run(eventID, 'normal', parseInt(normalQty) || 0, parseFloat(normalPrice) || 0);
-            insertTickets.run(eventID, 'concession', parseInt(concessionQty) || 0, parseFloat(concessionPrice) || 0);
-    
+            //Insert concession ticket info
+            insertTickets.run(eventID, 'concession', parseInt(concessionQty) || 0, //using 0 if invalid or empty
+            parseFloat(concessionPrice) || 0);
+            
+            //Finalised statement to ensure insertion
             insertTickets.finalize((err) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).render('errorPage', { message: 'Error saving ticket info' });
                 }
+                //upon success, redirect to organiser home
                 res.redirect('/organiser/home');
             });
         }
