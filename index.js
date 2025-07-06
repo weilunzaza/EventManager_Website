@@ -40,8 +40,6 @@ app.get('/', (req, res) => {
 });
 
 // Add all the route handlers in usersRoutes to the app under the path /users
-const usersRoutes = require('./routes/users');
-app.use('/users', usersRoutes);
 const organiserRoutes = require('./routes/organiserRoutes');
 app.use('/organiser', organiserRoutes);
 const attendeeRoutes = require('./routes/attendeeRoutes');
